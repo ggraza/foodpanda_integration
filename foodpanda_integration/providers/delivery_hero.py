@@ -27,7 +27,11 @@ from frappe.utils.password import set_encrypted_password
 
 from foodpanda_integration.client.http import FoodpandaHttpClient, build_path, get_password
 from foodpanda_integration.constants import PROVIDER_DELIVERY_HERO, VERIFIED_ENDPOINTS
-from foodpanda_integration.exceptions import FoodpandaAPIError, FoodpandaConfigError
+from foodpanda_integration.exceptions import (
+	FoodpandaAPIError,
+	FoodpandaConfigError,
+	FoodpandaLiveAPIDisabled,
+)
 from foodpanda_integration.providers.base import BaseProvider
 
 TOKEN_SAFETY_MARGIN_SECONDS = 60
@@ -38,7 +42,16 @@ class DeliveryHeroProvider(BaseProvider):
 
 	def __init__(self, account_doc, restaurant=None):
 		super().__init__(account_doc, restaurant)
+		self._check_live_switch()
 		self.client = FoodpandaHttpClient(account_doc, restaurant=restaurant)
+
+	@staticmethod
+	def _check_live_switch():
+		"""Checked before every request, so turning the switch off stops calls immediately."""
+		from foodpanda_integration.providers import is_live_api_enabled
+
+		if not is_live_api_enabled():
+			raise FoodpandaLiveAPIDisabled(_("The live Foodpanda API is switched off in Foodpanda Settings."))
 
 	# --- helpers ----------------------------------------------------------------
 	def _path(self, fieldname, **values):
@@ -68,6 +81,7 @@ class DeliveryHeroProvider(BaseProvider):
 		if not username or not password:
 			raise FoodpandaConfigError(_("Username and Password are required on the Foodpanda Account."))
 
+		self._check_live_switch()
 		# Request format to be confirmed against the official spec in Phase 9.
 		body = self.client.request(
 			"POST",
@@ -94,6 +108,7 @@ class DeliveryHeroProvider(BaseProvider):
 		return token
 
 	def _request(self, method, path, operation, **kwargs):
+		self._check_live_switch()
 		try:
 			return self.client.request(method, path, operation=operation, auth_token=self._token(), **kwargs)
 		except FoodpandaAPIError as e:
@@ -123,7 +138,7 @@ class DeliveryHeroProvider(BaseProvider):
 
 	def mark_order_prepared(self, order_token):
 		path = self._path("preparation_completed_path", order_token=order_token)
-		return self._request("POST", path, "Mark Order Prepared")
+		return self._request("POST", path, "Mark Order Prepared", redact=[order_token])
 
 	def get_order_ids(self, pos_vendor_id=None, status=None, past_hours=24):
 		params = {"pastNumberOfHours": past_hours}

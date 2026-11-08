@@ -9,7 +9,7 @@ from frappe.model.document import Document
 class FoodpandaRestaurant(Document):
 	def validate(self):
 		self.pos_vendor_id = (self.pos_vendor_id or "").strip()
-		self.validate_unique_vendor()
+		self.validate_unique_vendor()  # friendly message; the database index below is the real guard
 		self.validate_company_links()
 
 	def validate_unique_vendor(self):
@@ -42,3 +42,10 @@ class FoodpandaRestaurant(Document):
 						_(doctype), frappe.bold(value), frappe.bold(company), frappe.bold(self.company)
 					)
 				)
+
+
+def on_doctype_update():
+	"""Database-level guarantee: one POS Vendor ID per Foodpanda Account (also under concurrent saves)."""
+	frappe.db.add_unique(
+		"Foodpanda Restaurant", ["account", "pos_vendor_id"], constraint_name="unique_account_vendor"
+	)

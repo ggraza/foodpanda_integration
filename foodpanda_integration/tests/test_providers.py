@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import frappe
 
-from foodpanda_integration.client.http import FoodpandaHttpClient, build_path
+from foodpanda_integration.client.http import FoodpandaHttpClient, _backoff, build_path, validate_base_url
 from foodpanda_integration.exceptions import (
 	FoodpandaAPIError,
 	FoodpandaConfigError,
@@ -57,6 +57,37 @@ class TestProviders(FoodpandaTestCase):
 		set_settings(enabled=0)
 		self.assertRaises(FoodpandaConfigError, get_provider, account)
 
+	def test_mock_failure_does_not_change_state(self):
+		account = make_account()
+		provider = get_provider(account)
+		provider.update_vendor_availability("V2", "OPEN")
+		account.db_set("mock_simulate_failure", 1)
+		account.reload()
+		provider = get_provider(account)
+		self.assertRaises(FoodpandaAPIError, provider.update_vendor_availability, "V2", "CLOSED")
+		self.assertRaises(
+			FoodpandaAPIError,
+			provider.update_item_availability,
+			"V2",
+			[{"remote_code": "B1", "available": 0}],
+		)
+		account.db_set("mock_simulate_failure", 0)
+		account.reload()
+		provider = get_provider(account)
+		self.assertEqual(provider.get_vendor_availability("V2")["availabilityState"], "OPEN")
+		self.assertEqual(provider.get_unavailable_items("V2"), [])
+
+	def test_live_switch_rechecked_on_every_call(self):
+		set_settings(enable_live_api=1)
+		account = make_account(
+			name="FP Test Live", provider="Delivery Hero", username="u", password="p", login_path="/l"
+		)
+		provider = get_provider(account)
+		set_settings(enable_live_api=0)
+		with patch.object(provider.client.session, "request") as request:
+			self.assertRaises(FoodpandaLiveAPIDisabled, provider.get_order_detail, "1")
+			request.assert_not_called()
+
 	def test_get_provider_returns_mock(self):
 		self.assertIsInstance(get_provider(make_account()), MockProvider)
 
@@ -92,6 +123,66 @@ class TestProviders(FoodpandaTestCase):
 
 
 class TestHttpClient(FoodpandaTestCase):
+	def test_private_hosts_refused(self):
+		for url in (
+			"https://127.0.0.1",
+			"https://10.0.0.5/api",
+			"https://localhost",
+			"https://[::1]",
+			"https://169.254.169.254",
+		):
+			self.assertRaises(FoodpandaConfigError, validate_base_url, url, False)
+		self.assertRaises(FoodpandaConfigError, validate_base_url, "https://localhost.", True)
+		validate_base_url("https://8.8.8.8", False)
+
+	def test_retry_after_http_date(self):
+		import time as _time
+		from email.utils import formatdate
+
+		response = MagicMock(headers={"Retry-After": formatdate(_time.time() + 10, usegmt=True)})
+		self.assertTrue(8 <= _backoff(1, response) <= 10)
+		self.assertEqual(_backoff(1, MagicMock(headers={"Retry-After": "5"})), 5)
+
+	@patch("foodpanda_integration.client.http.time.sleep")
+	def test_post_not_retried_on_server_error_but_on_429(self, sleep):
+		account = frappe._dict(
+			name=None, base_url="https://example.invalid", timeout_seconds=5, max_retries=3
+		)
+		bad = MagicMock(status_code=503, content=b"", text="", headers={})
+		session = MagicMock()
+		session.request.return_value = bad
+		client = FoodpandaHttpClient(account, session=session)
+		self.assertRaises(FoodpandaAPIError, client.request, "POST", "/x", operation="Test")
+		self.assertEqual(session.request.call_count, 1)
+
+		busy = MagicMock(status_code=429, content=b"", text="", headers={})
+		good = MagicMock(status_code=200, content=b"{}", text="{}", headers={})
+		good.json.return_value = {}
+		session.request.reset_mock()
+		session.request.side_effect = [busy, good]
+		client.request("POST", "/x", operation="Test")
+		self.assertEqual(session.request.call_count, 2)
+
+	def test_redirects_not_followed_and_tokens_redacted(self):
+		account = frappe._dict(
+			name=None, base_url="https://example.invalid", timeout_seconds=5, max_retries=0
+		)
+		moved = MagicMock(status_code=307, content=b"", text="", headers={"Location": "https://evil.example"})
+		session = MagicMock()
+		session.request.return_value = moved
+		client = FoodpandaHttpClient(account, session=session)
+		self.assertRaises(
+			FoodpandaAPIError,
+			client.request,
+			"POST",
+			"/v2/orders/TOK123/x",
+			operation="Redirect",
+			redact=["TOK123"],
+		)
+		self.assertIs(session.request.call_args.kwargs["allow_redirects"], False)
+		log = frappe.get_last_doc("Foodpanda API Log", filters={"operation": "Redirect"})
+		self.assertNotIn("TOK123", log.url)
+
 	def test_build_path(self):
 		self.assertEqual(build_path("/v2/orders/{order_token}/x", order_token="a/b"), "/v2/orders/a%2Fb/x")
 		self.assertRaises(FoodpandaConfigError, build_path, "/v2/{missing}")

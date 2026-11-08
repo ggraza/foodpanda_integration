@@ -25,6 +25,27 @@ class TestFoodpandaAccount(FoodpandaTestCase):
 		account.append("status_map", {"internal_status": "Accepted"})
 		self.assertRaises(frappe.ValidationError, account.save)
 
+	def test_duplicate_foodpanda_status_rejected(self):
+		account = make_account()
+		account.status_map[2].foodpanda_status = "order_rejected"  # Accepted row, same value as Rejected
+		self.assertRaises(frappe.ValidationError, account.save)
+
+	def test_token_cleared_when_credentials_change(self):
+		account = make_account(name="FP Test Live", provider="Delivery Hero", username="u", password="p")
+		frappe.db.set_value(
+			"Foodpanda Account", account.name, {"access_token": "*" * 10, "token_expires_at": "2099-01-01"}
+		)
+		account.reload()
+		account.username = "someone-else"
+		account.save()
+		self.assertFalse(account.access_token)
+		self.assertFalse(account.token_expires_at)
+
+	def test_private_base_url_rejected(self):
+		account = make_account(name="FP Test Live", provider="Delivery Hero")
+		account.base_url = "https://192.168.1.10"
+		self.assertRaises(frappe.ValidationError, account.save)
+
 	def test_live_account_gets_staging_url_and_needs_https(self):
 		account = make_account(name="FP Test Live", provider="Delivery Hero", environment="Staging")
 		self.assertTrue(account.base_url.startswith("https://integration-middleware.stg"))

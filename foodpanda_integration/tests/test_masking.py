@@ -1,6 +1,6 @@
 import unittest
 
-from foodpanda_integration.client.masking import MASK, mask_data, mask_text, to_log_text
+from foodpanda_integration.client.masking import MASK, mask_data, mask_free_text, mask_text, to_log_text
 
 
 class TestMasking(unittest.TestCase):
@@ -33,3 +33,20 @@ class TestMasking(unittest.TestCase):
 	def test_log_text_is_cut(self):
 		text = to_log_text({"blob": "x" * 50000})
 		self.assertTrue(text.endswith("(cut)"))
+
+	def test_form_encoded_body(self):
+		masked = mask_data("username=u&password=hunter2&grant_type=client_credentials")
+		self.assertIn("password=***", masked)
+		self.assertNotIn("hunter2", masked)
+
+	def test_camel_case_personal_keys(self):
+		masked = mask_data({"customerName": "Ali Khan", "firstName": "Ali", "productName": "Burger"})
+		self.assertNotEqual(masked["customerName"], "Ali Khan")
+		self.assertNotEqual(masked["firstName"], "Ali")
+		self.assertEqual(masked["productName"], "Burger")
+
+	def test_free_text(self):
+		text = mask_free_text("GET /x?access_token=abc123&vendorId=5 Authorization: Bearer xyz.abc")
+		self.assertNotIn("abc123", text)
+		self.assertNotIn("xyz.abc", text)
+		self.assertIn("vendorId=5", text)

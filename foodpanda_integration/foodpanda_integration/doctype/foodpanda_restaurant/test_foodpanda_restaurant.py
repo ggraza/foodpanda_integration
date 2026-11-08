@@ -38,6 +38,12 @@ class TestFoodpandaRestaurant(FoodpandaTestCase):
 			frappe.ValidationError, make_restaurant, "FP Test Branch 2", self.account, self.company, "PK-001"
 		)
 
+	def test_database_unique_index(self):
+		indexes = frappe.db.sql(
+			"show index from `tabFoodpanda Restaurant` where Key_name='unique_account_vendor'", as_dict=True
+		)
+		self.assertEqual(sorted(i.Column_name for i in indexes), ["account", "pos_vendor_id"])
+
 	def test_warehouse_must_match_company(self):
 		other_warehouse = frappe.db.get_value("Warehouse", {"company": self.other_company, "is_group": 0})
 		self.assertTrue(other_warehouse)

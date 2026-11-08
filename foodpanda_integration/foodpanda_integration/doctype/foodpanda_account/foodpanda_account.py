@@ -22,10 +22,30 @@ class FoodpandaAccount(Document):
 		if self.provider == PROVIDER_DELIVERY_HERO:
 			if not self.base_url and self.environment == "Staging":
 				self.base_url = DELIVERY_HERO_STAGING_URL
-			if self.base_url and not self.base_url.startswith("https://"):
-				frappe.throw(_("API Base URL must start with https://"))
+			if self.base_url:
+				from foodpanda_integration.client.http import validate_base_url
+
+				validate_base_url(self.base_url, resolve=False)
 		self.validate_status_map()
 		self.validate_allowed_ips()
+		self.clear_token_if_credentials_changed()
+
+	def clear_token_if_credentials_changed(self):
+		"""A cached login token must not outlive the credentials or chain it was issued for."""
+		if self.is_new():
+			return
+		watched = (
+			"provider",
+			"environment",
+			"base_url",
+			"chain_code",
+			"username",
+			"password",
+			"client_secret",
+		)
+		if any(self.has_value_changed(field) for field in watched):
+			self.access_token = None
+			self.token_expires_at = None
 
 	def set_default_status_map(self):
 		if self.status_map:
@@ -42,11 +62,20 @@ class FoodpandaAccount(Document):
 			)
 
 	def validate_status_map(self):
-		seen = set()
+		seen_internal, seen_foodpanda = set(), set()
 		for row in self.status_map:
-			if row.internal_status in seen:
+			row.foodpanda_status = (row.foodpanda_status or "").strip()
+			if row.internal_status in seen_internal:
 				frappe.throw(_("Row {0}: status {1} is mapped twice.").format(row.idx, row.internal_status))
-			seen.add(row.internal_status)
+			seen_internal.add(row.internal_status)
+			if row.foodpanda_status:
+				if row.foodpanda_status in seen_foodpanda:
+					frappe.throw(
+						_("Row {0}: Foodpanda status {1} is used for more than one internal status.").format(
+							row.idx, row.foodpanda_status
+						)
+					)
+				seen_foodpanda.add(row.foodpanda_status)
 
 	def validate_allowed_ips(self):
 		import ipaddress

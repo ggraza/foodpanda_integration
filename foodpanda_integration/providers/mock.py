@@ -24,8 +24,7 @@ class MockProvider(BaseProvider):
 
 	def _call(self, operation, method, path, request=None, response=None):
 		started = time.monotonic()
-		# Lets a tester force an error: set "Mock: Simulate Failure" on the account.
-		fail = bool(self.account.get("mock_simulate_failure"))
+		fail = self._simulate_failure()
 		write_api_log(
 			account=self.account.name,
 			restaurant=self.restaurant,
@@ -43,8 +42,19 @@ class MockProvider(BaseProvider):
 			raise FoodpandaAPIError(_("Mock provider: simulated failure for {0}.").format(operation), 503)
 		return response
 
+	def _simulate_failure(self):
+		# Lets a tester force an error: tick "Mock: Simulate Failure" on the account.
+		return bool(self.account.get("mock_simulate_failure"))
+
+	def _fail_before_change(self, operation, method, path, request):
+		"""On a simulated failure, log and raise BEFORE changing any mock state."""
+		if self._simulate_failure():
+			self._call(operation, method, path, request)
+
 	def _cache_key(self, *parts):
-		return "foodpanda_mock:" + ":".join([self.account.name, *map(str, parts)])
+		# The account's creation time is part of the key, so a deleted and re-created
+		# account with the same name starts with clean mock data.
+		return "foodpanda_mock:" + ":".join([self.account.name, str(self.account.creation), *map(str, parts)])
 
 	# --- Connection -----------------------------------------------------------
 	def test_connection(self):
@@ -85,6 +95,8 @@ class MockProvider(BaseProvider):
 		)
 
 	def update_item_availability(self, pos_vendor_id, items):
+		path = f"/vendors/{pos_vendor_id}/items/availability"
+		self._fail_before_change("Update Item Availability", "POST", path, items)
 		key = self._cache_key("unavailable", pos_vendor_id)
 		unavailable = set(frappe.cache().get_value(key) or [])
 		for item in items:
@@ -122,12 +134,12 @@ class MockProvider(BaseProvider):
 	def update_vendor_availability(self, pos_vendor_id, availability_state, closing_reason=None):
 		if availability_state not in AVAILABILITY_STATES:
 			raise FoodpandaAPIError(_("Invalid availability state: {0}").format(availability_state), 400)
+		path = f"/remoteVendors/{pos_vendor_id}/availability"
 		state = {
 			"availabilityState": availability_state,
 			"closingReason": closing_reason,
 			"changedAt": str(now_datetime()),
 		}
+		self._fail_before_change("Update Vendor Availability", "PUT", path, state)
 		frappe.cache().set_value(self._cache_key("availability", pos_vendor_id), state)
-		return self._call(
-			"Update Vendor Availability", "PUT", f"/remoteVendors/{pos_vendor_id}/availability", state, state
-		)
+		return self._call("Update Vendor Availability", "PUT", path, state, state)

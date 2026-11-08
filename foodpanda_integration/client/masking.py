@@ -6,6 +6,8 @@ Usage:
 """
 
 import json
+import re
+from urllib.parse import parse_qsl, urlencode
 
 MASK = "***"
 
@@ -38,14 +40,44 @@ PERSONAL_KEYS = (
 	"lastname",
 	"last_name",
 	"customer_name",
+	"full_name",
+	"recipient",
 )
 
 MAX_LOG_LENGTH = 20000
 
 
+_CAMEL = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
+# key=value or "key": "value" pairs inside free text (URLs, error messages, form bodies)
+_PAIR = re.compile(r"([A-Za-z_][A-Za-z0-9_\-]*)(=|\"?\s*:\s*\"?)([^&\s\",}?=]+)")
+
+
+def _normalise_key(key):
+	"""'customerName' / 'Customer-Name' -> 'customer_name'."""
+	return _CAMEL.sub("_", str(key)).lower().replace("-", "_")
+
+
 def _key_matches(key, words):
-	key = str(key).lower().replace("-", "_")
-	return any(word in key for word in words)
+	key = _normalise_key(key)
+	compact = key.replace("_", "")
+	return any(word in key or word.replace("_", "") in compact for word in words)
+
+
+def mask_free_text(text):
+	"""Hide secret / personal values that appear as key=value or "key": "value" in plain text."""
+	if not text:
+		return text
+
+	def replace(match):
+		key, sep, value = match.groups()
+		if _key_matches(key, SECRET_KEYS):
+			return f"{key}{sep}{MASK}"
+		if _key_matches(key, PERSONAL_KEYS):
+			return f"{key}{sep}{mask_text(value)}"
+		return match.group(0)
+
+	text = re.sub(r"(?i)(bearer\s+)[A-Za-z0-9._\-]+", r"\1" + MASK, str(text))
+	return _PAIR.sub(replace, text)
 
 
 def mask_text(value, keep=2):
@@ -79,7 +111,11 @@ def mask_data(data):
 				return mask_data(json.loads(stripped))
 			except ValueError:
 				pass
-		return data
+		if "=" in stripped and " " not in stripped:  # form-encoded body: a=1&b=2
+			pairs = parse_qsl(stripped, keep_blank_values=True)
+			if pairs:
+				return urlencode(list(mask_data(dict(pairs)).items()), safe="*")
+		return mask_free_text(data)
 	return data
 
 
