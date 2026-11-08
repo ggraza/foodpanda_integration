@@ -9,3 +9,5 @@ dist/
 .idea/
 .vscode/
 foodpanda_integration/public/dist/
+dump.rdb
+*.whl

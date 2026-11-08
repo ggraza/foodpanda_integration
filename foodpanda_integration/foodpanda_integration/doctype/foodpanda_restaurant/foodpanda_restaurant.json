@@ -1,0 +1,219 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:restaurant_name",
+ "creation": "2026-11-08 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "restaurant_section",
+  "restaurant_name",
+  "account",
+  "company",
+  "column_break_r1",
+  "enabled",
+  "pos_vendor_id",
+  "platform_vendor_id",
+  "order_flow",
+  "erpnext_section",
+  "warehouse",
+  "price_list",
+  "customer",
+  "column_break_r2",
+  "cost_center",
+  "pos_profile",
+  "invoicing_section",
+  "invoicing_mode",
+  "column_break_r3",
+  "stock_threshold"
+ ],
+ "fields": [
+  {
+   "fieldname": "restaurant_section",
+   "fieldtype": "Section Break",
+   "label": "Restaurant"
+  },
+  {
+   "fieldname": "restaurant_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Restaurant Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Foodpanda Account",
+   "options": "Foodpanda Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_r1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "description": "The ID Foodpanda uses for this restaurant in the POS integration (remoteId / posVendorId).",
+   "fieldname": "pos_vendor_id",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "POS Vendor ID (remoteId)",
+   "reqd": 1
+  },
+  {
+   "description": "The vendor code shown in the Foodpanda vendor portal (optional).",
+   "fieldname": "platform_vendor_id",
+   "fieldtype": "Data",
+   "label": "Foodpanda Vendor Code"
+  },
+  {
+   "default": "Indirect",
+   "description": "Indirect: staff accept orders on the Foodpanda tablet. Direct: staff accept or reject in ERPNext (needs Foodpanda approval).",
+   "fieldname": "order_flow",
+   "fieldtype": "Select",
+   "label": "Order Flow",
+   "options": "Indirect\nDirect"
+  },
+  {
+   "fieldname": "erpnext_section",
+   "fieldtype": "Section Break",
+   "label": "ERPNext Defaults"
+  },
+  {
+   "description": "Stock is checked and reduced from this warehouse.",
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "price_list",
+   "fieldtype": "Link",
+   "label": "Price List",
+   "options": "Price List"
+  },
+  {
+   "description": "Customer used on Sales Invoices for Foodpanda orders.",
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "column_break_r2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center"
+  },
+  {
+   "description": "Used by the POSAwesome Foodpanda screen (optional).",
+   "fieldname": "pos_profile",
+   "fieldtype": "Link",
+   "label": "POS Profile",
+   "options": "POS Profile"
+  },
+  {
+   "fieldname": "invoicing_section",
+   "fieldtype": "Section Break",
+   "label": "Invoicing and Stock"
+  },
+  {
+   "default": "On Delivery",
+   "fieldname": "invoicing_mode",
+   "fieldtype": "Select",
+   "label": "Create Sales Invoice",
+   "options": "On Delivery\nDaily Batch\nManual"
+  },
+  {
+   "fieldname": "column_break_r3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "When stock in the warehouse falls to this quantity or below, the item is shown as sold out on Foodpanda.",
+   "fieldname": "stock_threshold",
+   "fieldtype": "Float",
+   "label": "Mark Item Unavailable at Stock Level",
+   "non_negative": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-08 15:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Foodpanda Integration",
+ "name": "Foodpanda Restaurant",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Foodpanda Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 0,
+   "export": 1,
+   "print": 0,
+   "read": 1,
+   "report": 1,
+   "role": "Foodpanda Operator",
+   "share": 0
+  },
+  {
+   "email": 0,
+   "export": 1,
+   "print": 0,
+   "read": 1,
+   "report": 1,
+   "role": "Foodpanda Viewer",
+   "share": 0
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "restaurant_name",
+ "track_changes": 1
+}
