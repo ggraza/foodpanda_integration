@@ -1,0 +1,32 @@
+[project]
+name = "foodpanda_integration"
+authors = [
+    { name = "Ghulam Ghous", email = "ghulamghous.raza@gmail.com" }
+]
+description = "Foodpanda (Delivery Hero) restaurant integration for ERPNext and POSAwesome"
+requires-python = ">=3.10"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = [
+    # "frappe" and "erpnext" are installed by bench, do not list them here.
+]
+
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["F", "E", "W", "I", "UP", "B"]
+ignore = ["E501", "W191", "E101", "B017"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "tab"
+
+[tool.bench.frappe-dependencies]
+frappe = ">=14.0.0,<17.0.0"
+erpnext = ">=14.0.0,<17.0.0"

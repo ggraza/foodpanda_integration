@@ -1,0 +1,110 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-11-08 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "general_section",
+  "enabled",
+  "enable_live_api",
+  "column_break_gen",
+  "log_retention_days",
+  "orders_screen_section",
+  "play_sound",
+  "column_break_scr",
+  "auto_refresh_seconds"
+ ],
+ "fields": [
+  {
+   "fieldname": "general_section",
+   "fieldtype": "Section Break",
+   "label": "General"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enable Foodpanda Integration"
+  },
+  {
+   "default": "0",
+   "description": "Leave this OFF until Foodpanda has approved your integration and sent credentials. While it is off, only the Mock provider works and nothing is sent to Foodpanda.",
+   "fieldname": "enable_live_api",
+   "fieldtype": "Check",
+   "label": "Enable Live Foodpanda API"
+  },
+  {
+   "fieldname": "column_break_gen",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "30",
+   "fieldname": "log_retention_days",
+   "fieldtype": "Int",
+   "label": "Keep API Logs For (Days)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "orders_screen_section",
+   "fieldtype": "Section Break",
+   "label": "Orders Screen"
+  },
+  {
+   "default": "1",
+   "fieldname": "play_sound",
+   "fieldtype": "Check",
+   "label": "Play Sound for New Orders"
+  },
+  {
+   "fieldname": "column_break_scr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "30",
+   "description": "Fallback refresh for the orders screen when real-time updates are not available.",
+   "fieldname": "auto_refresh_seconds",
+   "fieldtype": "Int",
+   "label": "Auto Refresh Every (Seconds)",
+   "non_negative": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-11-08 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Foodpanda Integration",
+ "name": "Foodpanda Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Foodpanda Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

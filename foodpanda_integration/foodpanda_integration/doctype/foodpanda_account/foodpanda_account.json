@@ -1,0 +1,370 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:account_name",
+ "creation": "2026-11-08 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "account_section",
+  "account_name",
+  "provider",
+  "column_break_acc",
+  "enabled",
+  "environment",
+  "credentials_section",
+  "base_url",
+  "chain_code",
+  "username",
+  "password",
+  "client_secret",
+  "column_break_cred",
+  "timeout_seconds",
+  "max_retries",
+  "inbound_section",
+  "plugin_username",
+  "plugin_token",
+  "column_break_in",
+  "allowed_ips",
+  "paths_section",
+  "login_path",
+  "order_status_path",
+  "catalog_submit_path",
+  "item_availability_path",
+  "vendor_availability_update_path",
+  "column_break_paths",
+  "preparation_completed_path",
+  "vendor_availability_path",
+  "unavailable_items_path",
+  "import_logs_path",
+  "order_ids_path",
+  "order_detail_path",
+  "status_section",
+  "status_map",
+  "reject_reasons",
+  "mock_section",
+  "mock_simulate_failure",
+  "connection_section",
+  "last_connection_status",
+  "last_connection_at",
+  "column_break_conn",
+  "last_connection_message",
+  "access_token",
+  "token_expires_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "account_section",
+   "fieldtype": "Section Break",
+   "label": "Account"
+  },
+  {
+   "fieldname": "account_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Account Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "Mock",
+   "description": "Mock = safe test mode, nothing is sent to Foodpanda. Delivery Hero = the real Foodpanda API (needs approval and credentials).",
+   "fieldname": "provider",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Provider",
+   "options": "Mock\nDelivery Hero",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_acc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "default": "Staging",
+   "fieldname": "environment",
+   "fieldtype": "Select",
+   "label": "Environment",
+   "options": "Staging\nProduction"
+  },
+  {
+   "collapsible": 0,
+   "description": "Only Foodpanda Managers and System Managers can see this account. Passwords are stored encrypted and are never sent to the browser.",
+   "fieldname": "credentials_section",
+   "fieldtype": "Section Break",
+   "label": "Foodpanda API Credentials"
+  },
+  {
+   "description": "Staging: https://integration-middleware.stg.restaurant-partners.com. Production URL is given by Foodpanda.",
+   "fieldname": "base_url",
+   "fieldtype": "Data",
+   "label": "API Base URL",
+   "options": "URL"
+  },
+  {
+   "description": "Given by Foodpanda during onboarding.",
+   "fieldname": "chain_code",
+   "fieldtype": "Data",
+   "label": "Chain Code"
+  },
+  {
+   "fieldname": "username",
+   "fieldtype": "Data",
+   "label": "Username"
+  },
+  {
+   "fieldname": "password",
+   "fieldtype": "Password",
+   "label": "Password"
+  },
+  {
+   "fieldname": "client_secret",
+   "fieldtype": "Password",
+   "label": "Secret"
+  },
+  {
+   "fieldname": "column_break_cred",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "30",
+   "fieldname": "timeout_seconds",
+   "fieldtype": "Int",
+   "label": "Request Timeout (Seconds)",
+   "non_negative": 1
+  },
+  {
+   "default": "3",
+   "fieldname": "max_retries",
+   "fieldtype": "Int",
+   "label": "Retries on Temporary Errors",
+   "non_negative": 1
+  },
+  {
+   "description": "Foodpanda sends orders to your ERPNext site. These values are given to Foodpanda during onboarding.",
+   "fieldname": "inbound_section",
+   "fieldtype": "Section Break",
+   "label": "Inbound: Foodpanda Calls ERPNext"
+  },
+  {
+   "fieldname": "plugin_username",
+   "fieldtype": "Data",
+   "label": "Plugin Username"
+  },
+  {
+   "description": "Secret that Foodpanda must send as a Bearer token when calling your site.",
+   "fieldname": "plugin_token",
+   "fieldtype": "Password",
+   "label": "Plugin Token"
+  },
+  {
+   "fieldname": "column_break_in",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "One per line. Requests from other IPs are refused. Staging: 34.246.34.27, 18.202.142.208, 54.72.10.41",
+   "fieldname": "allowed_ips",
+   "fieldtype": "Small Text",
+   "label": "Allowed Foodpanda IP Addresses"
+  },
+  {
+   "collapsible": 1,
+   "description": "Paths marked 'from official spec' are not public. Copy them from the API specification Foodpanda sends you. Use {placeholders} exactly as shown.",
+   "fieldname": "paths_section",
+   "fieldtype": "Section Break",
+   "label": "API Endpoint Paths"
+  },
+  {
+   "fieldname": "login_path",
+   "fieldtype": "Data",
+   "label": "Login Path (from official spec)"
+  },
+  {
+   "description": "Use {order_token} for the order.",
+   "fieldname": "order_status_path",
+   "fieldtype": "Data",
+   "label": "Update Order Status Path (from official spec)"
+  },
+  {
+   "description": "Use {chain_code} and {pos_vendor_id}.",
+   "fieldname": "catalog_submit_path",
+   "fieldtype": "Data",
+   "label": "Submit Catalog Path (from official spec)"
+  },
+  {
+   "description": "Use {chain_code} and {pos_vendor_id}.",
+   "fieldname": "item_availability_path",
+   "fieldtype": "Data",
+   "label": "Update Item Availability Path (from official spec)"
+  },
+  {
+   "description": "Use {chain_code} and {pos_vendor_id}.",
+   "fieldname": "vendor_availability_update_path",
+   "fieldtype": "Data",
+   "label": "Update Store Availability Path (from official spec)"
+  },
+  {
+   "fieldname": "column_break_paths",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "/v2/orders/{order_token}/preparation-completed",
+   "fieldname": "preparation_completed_path",
+   "fieldtype": "Data",
+   "label": "Preparation Completed Path"
+  },
+  {
+   "default": "/v2/chains/{chain_code}/remoteVendors/{pos_vendor_id}/availability",
+   "fieldname": "vendor_availability_path",
+   "fieldtype": "Data",
+   "label": "Get Store Availability Path"
+  },
+  {
+   "default": "/v2/chains/{chain_code}/vendors/{pos_vendor_id}/catalog/items/unavailable",
+   "fieldname": "unavailable_items_path",
+   "fieldtype": "Data",
+   "label": "Get Unavailable Items Path"
+  },
+  {
+   "default": "/v2/chains/{chain_code}/vendors/{pos_vendor_id}/menu-import-logs",
+   "fieldname": "import_logs_path",
+   "fieldtype": "Data",
+   "label": "Catalog Import Logs Path"
+  },
+  {
+   "default": "/v2/chains/{chain_code}/orders/ids",
+   "fieldname": "order_ids_path",
+   "fieldtype": "Data",
+   "label": "Order IDs Path"
+  },
+  {
+   "default": "/v2/chains/{chain_code}/orders/{order_id}",
+   "fieldname": "order_detail_path",
+   "fieldtype": "Data",
+   "label": "Order Detail Path"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "status_section",
+   "fieldtype": "Section Break",
+   "label": "Status Mapping"
+  },
+  {
+   "fieldname": "status_map",
+   "fieldtype": "Table",
+   "label": "Status Map",
+   "options": "Foodpanda Status Map"
+  },
+  {
+   "fieldname": "reject_reasons",
+   "fieldtype": "Table",
+   "label": "Reject Reasons",
+   "options": "Foodpanda Reject Reason"
+  },
+  {
+   "depends_on": "eval:doc.provider==\"Mock\"",
+   "fieldname": "mock_section",
+   "fieldtype": "Section Break",
+   "label": "Mock Testing"
+  },
+  {
+   "default": "0",
+   "description": "Tick to make every Mock call fail, so you can test error handling and retries.",
+   "fieldname": "mock_simulate_failure",
+   "fieldtype": "Check",
+   "label": "Mock: Simulate Failure"
+  },
+  {
+   "fieldname": "connection_section",
+   "fieldtype": "Section Break",
+   "label": "Connection Status"
+  },
+  {
+   "fieldname": "last_connection_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Last Test Result",
+   "options": "\nSuccess\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_connection_at",
+   "fieldtype": "Datetime",
+   "label": "Last Tested At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_conn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_connection_message",
+   "fieldtype": "Small Text",
+   "label": "Last Test Message",
+   "read_only": 1
+  },
+  {
+   "fieldname": "access_token",
+   "fieldtype": "Password",
+   "hidden": 1,
+   "label": "Access Token",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "token_expires_at",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "Token Expires At",
+   "no_copy": 1,
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-08 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Foodpanda Integration",
+ "name": "Foodpanda Account",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Foodpanda Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "account_name",
+ "track_changes": 1
+}
